@@ -1,0 +1,2526 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0b0b12" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Coin Sling</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #0b0b12;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial,
+          sans-serif;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      #stage {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 540px;
+        height: 960px;
+        transform-origin: 0 0;
+        overflow: hidden;
+        background: #1a0630;
+      }
+      #cv {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .scr {
+        position: absolute;
+        inset: 0;
+        display: none;
+      }
+      .scr.on {
+        display: block;
+      }
+      /* HUD */
+      #hud {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 96px;
+        pointer-events: none;
+        padding-top: env(safe-area-inset-top);
+      }
+      #lvl {
+        position: absolute;
+        left: 14px;
+        top: 104px;
+        background: rgba(15, 15, 30, 0.55);
+        color: #fff;
+        font-weight: 800;
+        font-size: 17px;
+        letter-spacing: 0.5px;
+        padding: 9px 14px;
+        border-radius: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        pointer-events: auto;
+      }
+      #lvl small {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        opacity: 0.75;
+        margin-top: 2px;
+        letter-spacing: 0.3px;
+      }
+      #bal {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        top: 12px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        background: linear-gradient(180deg, #2b1640, #120a1f);
+        border: 3px solid #ffd76a;
+        border-radius: 24px;
+        color: #fff;
+        font-weight: 900;
+        font-size: 46px;
+        letter-spacing: 1px;
+        box-shadow:
+          0 5px 0 #0008,
+          0 0 24px #ffcc4466;
+        pointer-events: auto;
+        cursor: pointer;
+        text-shadow: 0 3px 0 #000;
+      }
+      #bal img {
+        width: 58px;
+        height: 58px;
+      }
+      #bal small {
+        position: absolute;
+        left: 18px;
+        top: 8px;
+        font-size: 12px;
+        letter-spacing: 2px;
+        opacity: 0.6;
+        text-shadow: none;
+      }
+      #bal.bump {
+        animation: bump 0.25s;
+      }
+      @keyframes bump {
+        50% {
+          transform: scale(1.04);
+        }
+      }
+      #shots {
+        position: absolute;
+        left: 16px;
+        top: 164px;
+        display: flex;
+        gap: 4px;
+      }
+      #shots img {
+        width: 26px;
+        height: 26px;
+        filter: drop-shadow(0 2px 0 #0006);
+      }
+      #shots img.used {
+        opacity: 0.25;
+        filter: grayscale(1);
+      }
+      #hint {
+        position: absolute;
+        left: 30px;
+        bottom: 300px;
+        color: #fff;
+        font-weight: 900;
+        font-size: 22px;
+        text-shadow:
+          0 3px 0 #000a,
+          0 0 10px #0008;
+        pointer-events: none;
+        animation: hint 1.2s ease-in-out infinite;
+        white-space: nowrap;
+      }
+      @keyframes hint {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+      #hand {
+        position: absolute;
+        width: 56px;
+        height: 56px;
+        pointer-events: none;
+        font-size: 52px;
+        line-height: 56px;
+        animation: drag 1.8s ease-in-out infinite;
+      }
+      @keyframes drag {
+        0% {
+          transform: translate(0, 0);
+          opacity: 0;
+        }
+        15% {
+          opacity: 1;
+        }
+        60% {
+          transform: translate(-62px, 48px);
+          opacity: 1;
+        }
+        80% {
+          transform: translate(-62px, 48px);
+          opacity: 0;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+      #next {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        width: 66px;
+        height: 66px;
+        margin-top: -33px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        background: linear-gradient(135deg, #fe2c55, #a1124e);
+        box-shadow:
+          0 0 0 3px #25f4ee,
+          0 6px 0 #0008,
+          0 0 24px #fe2c5599;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        animation: nx 1.2s ease-in-out infinite;
+      }
+      #next svg {
+        width: 34px;
+        height: 34px;
+      }
+      @keyframes nx {
+        50% {
+          transform: translateX(5px);
+        }
+      }
+      #toast {
+        position: absolute;
+        left: 50%;
+        top: 150px;
+        transform: translateX(-50%);
+        color: #fff;
+        font-weight: 900;
+        font-size: 34px;
+        text-shadow: 0 4px 0 #000a;
+        display: none;
+        white-space: nowrap;
+      }
+      /* intro */
+      #intro {
+        background: radial-gradient(120% 80% at 50% 20%, #2a1440 0%, #120a22 55%, #07060d 100%);
+        color: #fff;
+        text-align: center;
+      }
+      #intro .glow {
+        position: absolute;
+        left: 50%;
+        top: 38%;
+        width: 520px;
+        height: 520px;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(circle, #fe2c5544 0%, #25f4ee22 40%, transparent 70%);
+        animation: spin 8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+      #intro h1 {
+        position: absolute;
+        top: 16%;
+        left: 0;
+        right: 0;
+        font-size: 68px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        line-height: 0.95;
+        text-shadow:
+          3px 3px 0 #fe2c55,
+          -3px -3px 0 #25f4ee,
+          0 8px 20px #000;
+      }
+      #intro h1 span {
+        display: block;
+        font-size: 26px;
+        letter-spacing: 6px;
+        margin-top: 12px;
+        text-shadow: none;
+        color: #ffd76a;
+      }
+      #intro .gifts {
+        position: absolute;
+        top: 43%;
+        left: 0;
+        right: 0;
+        height: 180px;
+      }
+      #intro .gifts img {
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        filter: drop-shadow(0 10px 14px #000a);
+      }
+      #intro .gifts .g1 {
+        left: 20px;
+        top: 20px;
+        animation: fl 2.4s ease-in-out infinite;
+      }
+      #intro .gifts .g2 {
+        left: 195px;
+        top: -10px;
+        animation: fl 2.4s ease-in-out 0.4s infinite;
+        width: 160px;
+        height: 160px;
+      }
+      #intro .gifts .g3 {
+        left: 370px;
+        top: 20px;
+        animation: fl 2.4s ease-in-out 0.8s infinite;
+      }
+      #intro .icoin {
+        position: absolute;
+        left: 50%;
+        top: 65%;
+        width: 110px;
+        margin-left: -55px;
+        animation: fl 1.6s ease-in-out infinite;
+      }
+      @keyframes fl {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-14px);
+        }
+      }
+      #play {
+        position: absolute;
+        left: 50%;
+        top: 79%;
+        transform: translateX(-50%);
+        width: 300px;
+        height: 84px;
+        border: none;
+        border-radius: 42px;
+        background: linear-gradient(180deg, #ff4d6d, #fe2c55 55%, #c4123a);
+        color: #fff;
+        font-size: 34px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        box-shadow:
+          0 7px 0 #7a0a22,
+          0 0 30px #fe2c5588;
+        animation: pulse 1.1s ease-in-out infinite;
+        cursor: pointer;
+      }
+      @keyframes pulse {
+        50% {
+          transform: translateX(-50%) scale(1.07);
+        }
+      }
+      #intro .note {
+        position: absolute;
+        bottom: 18px;
+        left: 0;
+        right: 0;
+        font-size: 12px;
+        opacity: 0.45;
+      }
+      /* win */
+      #win {
+        background: rgba(6, 4, 14, 0.72);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+      }
+      .panel {
+        position: absolute;
+        left: 40px;
+        right: 40px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: linear-gradient(180deg, #24173d, #140d24);
+        border-radius: 30px;
+        border: 3px solid #ffd76a;
+        padding: 84px 26px 28px;
+        text-align: center;
+        color: #fff;
+        box-shadow:
+          0 20px 60px #000c,
+          0 0 40px #ffcc4433;
+        animation: pop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1);
+      }
+      @keyframes pop {
+        from {
+          transform: translateY(-50%) scale(0.5);
+          opacity: 0;
+        }
+      }
+      .stars {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -46px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 6px;
+      }
+      .stars i {
+        font-style: normal;
+        font-size: 76px;
+        line-height: 1;
+        filter: drop-shadow(0 4px 0 #8a5a00);
+        animation: star 0.5s cubic-bezier(0.2, 1.8, 0.4, 1) both;
+      }
+      .stars i:nth-child(2) {
+        font-size: 100px;
+        animation-delay: 0.15s;
+      }
+      .stars i:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+      @keyframes star {
+        from {
+          transform: scale(0) rotate(-40deg);
+        }
+      }
+      .xbtn {
+        position: absolute;
+        right: 14px;
+        top: 14px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #ffffff1a;
+        color: #fff;
+        font-size: 22px;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      #win .panel {
+        padding-top: 56px;
+      }
+      .panel h2 {
+        font-size: 38px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        text-shadow: 0 3px 0 #000;
+      }
+      .reward {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin: 16px 0 22px;
+        font-size: 54px;
+        font-weight: 900;
+        color: #ffd76a;
+        text-shadow: 0 4px 0 #6b4300;
+      }
+      .reward img {
+        width: 64px;
+        height: 64px;
+      }
+      .panel label {
+        display: block;
+        text-align: left;
+        font-size: 17px;
+        font-weight: 700;
+        opacity: 0.85;
+        margin: 0 4px 8px;
+      }
+      .inp {
+        display: flex;
+        align-items: center;
+        background: #fff;
+        border-radius: 18px;
+        padding: 6px 6px 6px 16px;
+        gap: 6px;
+      }
+      .inp b {
+        color: #999;
+        font-size: 24px;
+      }
+      .inp input {
+        flex: 1;
+        min-width: 0;
+        border: none;
+        outline: none;
+        font-size: 24px;
+        font-weight: 700;
+        color: #111;
+        background: transparent;
+        padding: 10px 0;
+        user-select: text;
+        -webkit-user-select: text;
+      }
+      .inp button {
+        border: none;
+        border-radius: 13px;
+        background: #161823;
+        color: #fff;
+        font-weight: 800;
+        font-size: 18px;
+        padding: 13px 16px;
+        cursor: pointer;
+      }
+      #claim {
+        margin-top: 20px;
+        width: 100%;
+        height: 72px;
+        border: none;
+        border-radius: 36px;
+        background: linear-gradient(180deg, #3ef9a0, #12c46b);
+        color: #fff;
+        font-size: 28px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        box-shadow: 0 6px 0 #0a6e3c;
+        cursor: pointer;
+        text-shadow: 0 2px 0 #0a6e3c;
+      }
+      #claim:disabled {
+        background: #4a4560;
+        box-shadow: 0 6px 0 #2a2738;
+        text-shadow: none;
+        opacity: 0.8;
+      }
+      /* fail */
+      #fail {
+        background: rgba(6, 4, 14, 0.6);
+      }
+      #fail .panel {
+        padding-top: 40px;
+        border-color: #fe2c55;
+      }
+      #retry {
+        margin-top: 22px;
+        width: 100%;
+        height: 72px;
+        border: none;
+        border-radius: 36px;
+        background: linear-gradient(180deg, #ff4d6d, #fe2c55);
+        color: #fff;
+        font-size: 28px;
+        font-weight: 900;
+        box-shadow: 0 6px 0 #7a0a22;
+        cursor: pointer;
+      }
+      /* loading */
+      #load {
+        background: #0f0f14;
+        color: #fff;
+        text-align: center;
+      }
+      .ring {
+        position: absolute;
+        left: 50%;
+        top: 33%;
+        width: 150px;
+        height: 150px;
+        margin: -75px 0 0 -75px;
+        border-radius: 50%;
+        border: 7px solid #ffffff18;
+        border-top-color: #fe2c55;
+        border-right-color: #25f4ee;
+        animation: rot 0.8s linear infinite;
+      }
+      @keyframes rot {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .lav {
+        position: absolute;
+        left: 50%;
+        top: 33%;
+        width: 116px;
+        height: 116px;
+        margin: -58px 0 0 -58px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 52px;
+        font-weight: 900;
+        color: #fff;
+      }
+      #lnick {
+        position: absolute;
+        top: 44%;
+        left: 0;
+        right: 0;
+        font-size: 26px;
+        font-weight: 800;
+      }
+      #lstep {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        font-size: 19px;
+        opacity: 0.7;
+      }
+      .bar {
+        position: absolute;
+        left: 60px;
+        right: 60px;
+        top: 56%;
+        height: 12px;
+        border-radius: 6px;
+        background: #ffffff18;
+        overflow: hidden;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #25f4ee, #fe2c55);
+      }
+      #lpct {
+        position: absolute;
+        top: 59%;
+        left: 0;
+        right: 0;
+        font-size: 16px;
+        opacity: 0.5;
+        font-weight: 700;
+      }
+      /* account */
+      #acct {
+        background: #f4f4f6;
+        color: #161823;
+      }
+      .top {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        background: #fff;
+        border-bottom: 1px solid #e8e8ec;
+        font-size: 21px;
+        font-weight: 700;
+      }
+      .back {
+        position: absolute;
+        left: 6px;
+        top: 4px;
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .back svg {
+        width: 30px;
+        height: 30px;
+      }
+      .prof {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 20px 22px;
+        background: #fff;
+      }
+      .av {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 900;
+        font-size: 30px;
+        flex: none;
+      }
+      .prof b {
+        display: block;
+        font-size: 22px;
+      }
+      .prof span {
+        font-size: 15px;
+        color: #8a8b91;
+      }
+      .card {
+        margin: 14px 16px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #1c1c28, #2b1b36);
+        color: #fff;
+        padding: 22px 22px 24px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+      }
+      .card:after {
+        content: "";
+        position: absolute;
+        right: -60px;
+        top: -60px;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #fe2c5555, transparent 70%);
+      }
+      .card small {
+        font-size: 15px;
+        opacity: 0.7;
+        font-weight: 600;
+      }
+      .amt {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+        font-size: 48px;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+      }
+      .amt img {
+        width: 52px;
+        height: 52px;
+      }
+      .plus {
+        display: inline-block;
+        margin-top: 10px;
+        background: #12c46b;
+        color: #fff;
+        font-weight: 800;
+        font-size: 15px;
+        padding: 6px 12px;
+        border-radius: 12px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: 0.4s;
+      }
+      .plus.on {
+        opacity: 1;
+        transform: none;
+      }
+      .sec {
+        margin: 18px 22px 8px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #8a8b91;
+      }
+      .list {
+        background: #fff;
+        margin: 0 16px;
+        border-radius: 18px;
+        overflow: hidden;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 15px 16px;
+        border-bottom: 1px solid #f0f0f3;
+      }
+      .row:last-child {
+        border: none;
+      }
+      .row .ic {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: #fff6dd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+      }
+      .row .ic img {
+        width: 30px;
+        height: 30px;
+      }
+      .row .t {
+        flex: 1;
+      }
+      .row .t b {
+        display: block;
+        font-size: 17px;
+        font-weight: 700;
+      }
+      .row .t span {
+        font-size: 14px;
+        color: #8a8b91;
+      }
+      .row .v {
+        font-weight: 800;
+        font-size: 18px;
+        color: #12a85c;
+      }
+      .row.new {
+        animation: slide 0.5s ease both 0.2s;
+      }
+      @keyframes slide {
+        from {
+          transform: translateX(40px);
+          opacity: 0;
+        }
+      }
+      .okbox {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: 30px;
+        background: #fff;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        box-shadow: 0 8px 30px #0002;
+        transform: translateY(160px);
+        transition: transform 0.5s cubic-bezier(0.2, 1.3, 0.4, 1);
+      }
+      .okbox.on {
+        transform: none;
+      }
+      .okbox .ck {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #12c46b;
+        color: #fff;
+        font-weight: 900;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: none;
+      }
+      .okbox b {
+        font-size: 16px;
+      }
+      #conf {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      window.IMGS = {
+  lion: [
+    "data:image/webp;base64,",
+    "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",
+  ].join(""),
+  dragon: [
+    "data:image/webp;base64,",
+    "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",
+  ].join(""),
+  coin: [
+    "data:image/webp;base64,",
+    "UklGRhAPAABXRUJQVlA4WAoAAAAQAAAAlQAAlQAAQUxQSEMGAAAB8EVtm2nbtm19f/zRbdu2bdu2",
+    "bdu2bdu2bdt2b26txh//d1Fra63XKBHtbowUEROA/yNXRlAgIyZjYwRUsfY300oY4QjyIm+Ajmio",
+    "LJFT19wSRjRwDQfzBjRDRELPItILQabu654HzSahehI0asCwB40a5D+JOI2JxhugVZMQFT3qmJPM",
+    "ONd8C84314yTjKnoMUSV4QkyTZ/sZO5aAFot0QgAo8y89kFXPP7OD/8OTtktDfr3+3eeuPLQ9ecY",
+    "HQBUwzBF3EgjaXy6WiECiAvsffung/nfdn3z4OHLjQMgqAxlJGxJY3fjltAaaQBGWu6c9zNJWjLL",
+    "3p3ePZslY/cf79xhGgAauo2Exfpk7yHnP6dGqI4CmOukD0kyWXb+t57NnGSfB7ccHwiqgiX/YWbP",
+    "xidEpS4KYI0HE+mWnb3sZiR/OGdeAHrQAGYOPfECRKlICMCmr5BMmWW6GZkfXGHTN0jnsCYegxCq",
+    "ocAaL5LZWLIndjfnsCeeCWgdAjDz7aRlFm+eM4fbeM/E0FCBCDmwD3NmLRO/Ww+I0mGimO1p0lhR",
+    "I2+cEYjSSSLY4m8mZ1Vz5r8nTAJE6ZiAcCZprK6RPx0+EaAdohjnISZnhT2RPx4xETpTMdlrTKy0",
+    "J/Kb3UcWKU8x/SdMrLSbkeTC0OICpv2ciXU2I9n32SNmV0HpAZN8zMQqZye/v3aTqdGJIYzxMhOr",
+    "bOTjm48HQGIoThT3MLHSL60MQFXQgRHHsYtVzgNPHwlBBR2pWIvJq2S8Aaro0CCT/eKZdc79N0LH",
+    "KO6nsdLO/gtBO0OxBROrnfnNJBI6IYSJf8m5Xkx8VKJ0gOJ8JtY88WjE8oLMPjB71dzyktDycBuN",
+    "dc/8dKwghQXM05W9ckw8G1rcTTTW3i0tAi0qYMZB7tWj8eVQVsSpTGygcVtoQYIxf6C3IPu3Y4mU",
+    "o1iPxiYaD4CWdLunNmT/aTyRUgQT/klvAxP3RSxFsR6Njcz+5RgihURcxtQKGjdDLEOg7zO3w5+W",
+    "UEbAzIPpzXC3eRCKUGxCYzsTT0IsIuIkpoZkfjIKpISAB2gNofsS0AIE8UPmliSehFjEhH/RW5L5",
+    "ukgBAXNbW5wDp0foPcUKzGyqcXPEEjamtSXx/BIi9mBqi/FFkRIOaY3z9/EgBRxJa02eD6GA41tD",
+    "44bQAo5rTuLBiAUcxtSc84s4oDnGu6EF7NqgZyC9pliP1pjMNwXSe8vQm/Nh7L2AuY3ems9G7j3B",
+    "xH+35+tRS4gfMrfm81F6DwGP0Vrz8UgFRFzE1Jq3QxE7tcb4HAS9rliM3poHEHpPMN5v9KYkXozY",
+    "ewh4lNaYI4qIOIqpKcbNilAsTW8KfUGEAgSjf8PcEOefE0AKgOJKTw0xvgRBGWsyNyTxfMQiBKN/",
+    "w9wO46bQIhBxNlMznP2nRigjYN7kzTC+CEGhAY/RWpF4GGIpinWa4Z7mRChFJL7t1gbjSyIoVrEZ",
+    "m7ELYjkSRn6X1gLnXxNByoFizTYkXgBFyYonaPVzHzQLQmHzDjGvnvF6BJStOJWpdp4HzSqliY75",
+    "OXPlEi+BonTFstm8ap7/mFRCcVCcwlS1xD2gKF90pBdpFTM+p4pODJj6d8/V8jxgdoSOgGLlbF6r",
+    "xD2g6NCIPZi8Tom3IqJjI05hqpLxvbGDdI4oLmVXhTL/nAkBHSyKG9hVnewDl4GioyXoDUyVydnW",
+    "RkSHi+BiJq9Jdt8SER0vASfScz2MaVNEVFACdu1iqoWx31qIqKNixZ+YvAqJPy6GiFpGTPUkPXde",
+    "Nj43DSLqqYjHJSbvsESeNwoUNQ2Cpd8jrZNy5o8bAAF1FcUYxw9gzp3iibxhMqigugrM8wBpuRM8",
+    "ke+tAShqLAqs8SqZrbRs5Ld7jYYgqHQICJu+QjJ5OW6Z/P6oCQBFxRXAuo86mc1LcDOSH+43AaCC",
+    "uiuA+c/5hmRO2XvDsxnJPneuMRIQBfVXAcZa/+afSNKSZR8+z5aMJPs8uvM0AKKgjUEBjLfGuW8M",
+    "ZI+WUrIeU0rm7D74/cs2mhJAUEE7RRWAzLDBCQ9+1pfDPfDzR8/YaOYIIKigtaIR3UeZYtEN9zjh",
+    "wqvvuP/uO2+44KR9N1hiulHQXVXQZgkaA/7TEDUI2i6iGmPUHmOMqkHwPw0BAFZQOCCmCAAAkC0A",
+    "nQEqlgCWAD6RPpxKJaMioihR23CwEgliCHABl0Oukk+084a3f6ngm0XWNPVZttPMN+3PrYemP+6+",
+    "cB1qvoMdKp/c/+n6VGbCf5vrbyQFctHNrKcdfKq1Bf1p61voo/s6ctO/Tv079Ir+kvzi2dNibAel",
+    "IPg4XbAc9mVOGOqDE604tfes+riBAeKSIQOAbP/9Q5qWIW+Qd8Ffjj4/CNEpiVT8VJk1rkVpg2pW",
+    "1P1huPzT/R7+BOr1MZuFM9m1WGEwunB6UMBz//tnzshYkz5ivkKkjlAKrVMhAx6zJNeuYHfD4Fby",
+    "Jo9mSneyT8YMoqZi8U8DUFyu3IQXkNTOntF9XzTtoarSzhr/kb0W/EYQYBVnWGqR6wKwut9ms7n3",
+    "I56kOrhddn4RMnQZcD6sc7S9D5fp7uEHgjQjEFeGZcA0zez6r9RJQSJJJcK6FNS6deRasnInhr0g",
+    "IR4CFXXao3pL3nlSA30d9Hah8mV08Kapf8bhwAD+w0wAAI3+GQWqIKLaHQPydviTIttRSX80d+mk",
+    "j7AfT/7Mz//UO0OxCMKvLVmqY3/3iMXe/MLMEBMcDAPq75qNLbbh6B7KbxrFG3HNz02opfSL5n5T",
+    "wxzOIPpfMkFOJquVJ1j1OEb3piDft6gqZW40H3JjGk0+xLN69H+5TFRLQOVOdAhwE9hrLUUA2Bgc",
+    "T6/sryq+9H1t1/jo8dUR2kXtlTa0Hm4NNxCAmGVrC4TeXl1hET1vXrtwPeyJlI3pU4TkV8QReCeO",
+    "AhIYMskmNCypduN9vRs6r5gEjZF34W37uqdK5fvyh//ieU9W0NNmaFOoQd3WVAxfLhwt83n8Drvw",
+    "Cc82DqbkQPRLfjCL35IHsync2qkKNwMCMWhw8ODIDebi459M/2MaXwk2Z75hB2GvaSzCPhxFZNPx",
+    "vVux1Hl2/jMK8LvTyqMo017W+x0WRnO4CzUq5h8bLaL0aol1oxbWLkaDpNAW0pghkmrqZoXlL+Q5",
+    "4hlNCciY10Qyf0d7yd4C0Te1Nxyzo7DZKs6l6cYIT4qJjUuu9yhynpS9dVDA7nR49PI3vPjdi238",
+    "4WJQhGu26MTVCAhjNqESLRjZXUCKkqZ7BXJmLRAOvhfC7LKM57ViGIcHUcjS7giVhPpHPsAJk+Xt",
+    "AdBS8/aoBaB6+TdieUEl45squDzJuUPmkXMPsO4o+q3zIPBqxHhN0IZNVKVwPtoiTmd2hyAilsoz",
+    "gGffQ0WlheKGwpozu/MSl98XYPxCh4bzXZJ0M/5UedeZKNEbMLNiGllfBXzoGFVlkn2tRhGNAIel",
+    "CrH/HmF3SLYA20ZhbvOp2Qh5RMIi6zODrlUF0Z5ZOHzfEF5QW6wCHCG9lr+/O656HcdzyLasVK7f",
+    "CxbMFQ3BTanYzeqTI5Fziv6JYmHKELdv7DaWnl1N2CMTL+sbjsPZMOccGV3DY805Ly/1S727KRam",
+    "mNcdWW/LXf/3cR//7tBDKQ+7AWQAduGh/+6MEUNicjSu7QA3kl/qa8x92F0hYBV1mN92xRDsJUJf",
+    "Hq3eYv+zRFgcJKvOcv/T1jy/4lkXKQx3DERQFp91M4zwwJLrqe4ljMUyJTyTf7Ofc4BEZTFb7G8m",
+    "NVi0+dl8RE5pATOBwrtmvpkV8n9QEYWdvrqILFV9TRUg6KNzmkPg3+JIyW6HtvZT6b8o1irZGh3U",
+    "JPoeRGKMSdRWBA1lQ0aZnB1qSPDyQpN7eEaWWvji+Ob4Isa7e3Lvcfqz5aysSwpr/YRL0qGHXQ9V",
+    "zTXsecl3ko/vorCZ5sbHx1r+6Nz3a4dlFDWZ1iFDUn4xUe1pipwgwNcNr7lliUNi1m5PY9CUIsnv",
+    "vpjD1TcW+rf/Jl4MIOop5APJ15/YU9V4dIOQ0hnWvDTU+GnzGepXo1n0r4fwZsHcvamoHXyx1knk",
+    "QuLL0wgfctSh3JGkHW9P3Vql3S7cr8kCPkv45mNr5nyKfCXZeOiVb2+Yeu319CYPUL3ZS5e2fKll",
+    "ScccZ/C9H7ACuucQKvGhzXhvm6ASWzR0KESdzn6NN2KUasjddw9cfp+yKaochkW3Hv+bXLan+1mR",
+    "3QcUSQz5bxcpu/CCHu+SE4Bvjo96chG4fMezmkbmY0DedoF0fgZl3KjC+p13yma6Gwj6Tv3UZNfz",
+    "Hqd59P0jid20N6+zXEEbnz4h/Z1RMJ9jbESV9297dAt4aWBS0l9OYeRjZlGbMH089XK/zV6GmbJH",
+    "Ps2iKLoXmm9q5ux/OMl7WdUgZbAsEAcTJLr3mDsH8ZTi1oq8aV0xnm4Bq2seawudOKIzm1qdgF+G",
+    "tqFZTCjLah4KGVUe+MzhlZmdfSd49tCnsYRR1eJVrWHGXbYqiTrDnEaE1y6qAyAgKG9utvRb4ARS",
+    "53GopjaPSWdMkSlNAUMKzSDXzUDUaol+cFUbhEEQ0QPJmdAIfJu8WPG38dngjOnmpuZB2NKj2ApI",
+    "2btDjbQ5AMQnl9P28IDrA0Wy886lhHG46U9nYt8fwPsdJWIXADSnfY1CjpyHp5aKy5H4/kwfodsT",
+    "EkxmHq9a0eo+LYiWLh1JrwvPGyLpk+ap/BCN94CVnMEDCueu11yDrGIBYsXz4iCHHNUfEkGKj/eN",
+    "tIDH1yKf8Z8O8mCBNR2tnEEO9byo8i3Iwaa08yQJjVy9YQv//rCtOITA6ldl7f91rQrtYnFtdy/7",
+    "DAABD62+sZRkG2z5vRBO3Stc3hK/zxNtraSyGBuqM4wqfi+/HrwgjC3+2TDuD+2tr1W/TMsbtE82",
+    "Mcj5GlyqyET9HQH+y5mBwurrRYsz/mVW6+xLvQSV60njqt0SaiV4LcI+UfS6dprwrhl21scp2VFm",
+    "OVJjw38ysxhPZ9tBtMnasBbTtD5ndRSTjeMUOz5cFMSNhpq5ZbQd7b/zpDeiTViK5Ok5iZwwwre9",
+    "Fe/qvM0G8wL37qp/9lbkJ3JoB7sWXDs8jNr2Ch9c7jsQNWg8wAAAAAAAAAAA",
+  ].join(""),
+};
+    </script>
+    <div id="stage">
+      <canvas id="cv"></canvas>
+
+      <div id="game" class="scr">
+        <div id="hud">
+          <div id="lvl">LEVEL <span id="lvn">1</span><small>of 3</small></div>
+          <div id="bal">          H = nh;
+          OFF = H - 960;
+          stage.style.height = H + "px";
+          stage.style.transform =
+            "translate(" + (w - 540 * SC) / 2 + "px," + (h - H * SC) / 2 + "px) scale(" + SC + ")";
+          K = Math.min(SC * (window.devicePixelRatio || 1), 2);
+          cv.width = Math.round(540 * K);
+          cv.height = Math.round(H * K);
+        }
+        window.addEventListener("resize", fit);
+        if (window.visualViewport) window.visualViewport.addEventListener("resize", fit);
+        fit();
+
+        /* Android fullscreen on first touch */
+        var fsDone = false;
+        document.addEventListener(
+          "pointerdown",
+          function () {
+            if (fsDone) return;
+            fsDone = true;
+            if (/Android/i.test(navigator.userAgent)) {
+              var d = document.documentElement;
+              try {
+                (d.requestFullscreen || d.webkitRequestFullscreen).call(d).catch(function () {});
+              } catch (e) {}
+            }
+          },
+          true,
+        );
+
+        /* ---------- world ---------- */
+        var G = 820,
+          GRAV = 1400,
+          ANCH = { x: 100, y: 700 },
+          MAXPULL = 100,
+          POWER = 11.2,
+          TOTAL = 4;
+        var THR = { wood: 40, ice: 40, stone: 40 };
+        var blocks,
+          gifts,
+          flyers,
+          parts,
+          texts,
+          coin,
+          shotsLeft,
+          state,
+          dragging,
+          balance,
+          shownBal,
+          winT,
+          clouds,
+          t0 = 0,
+          firstShot,
+          coinIdle,
+          coinAge;
+        var notes = [];
+        for (var ni = 0; ni < 42; ni++)
+          notes.push({
+            x: 10 + Math.random() * 520,
+            y: Math.random() * 1100,
+            s: 45 + Math.random() * 70,
+            p: Math.random() * 6,
+            z: 20 + Math.random() * 30,
+            o: 0.45 + Math.random() * 0.45,
+            t: ["♪", "♫", "♬", "♩"][ni % 4],
+            c: ["#25f4ee", "#fe2c55", "#ffffff"][ni % 3],
+          });
+        var sparks = [];
+        for (var si = 0; si < 40; si++)
+          sparks.push({
+            x: Math.random() * 540,
+            y: -200 + Math.random() * 900,
+            r: 0.8 + Math.random() * 1.8,
+            s: 1 + Math.random() * 3,
+            p: Math.random() * 6,
+          });
+
+        function B(x, y, w, h, type) {
+          return { x: x, y: y, w: w, h: h, type: type, vy: 0, dead: false };
+        }
+        var LV = 1;
+        function GF(k, x, y, r) {
+          return {
+            k: k,
+            x: x,
+            y: y,
+            r: r,
+            vx: 0,
+            vy: 0,
+            val: { gorilla: 2500, lion: 3500, dragon: 4000 }[k],
+            dead: false,
+            ph: Math.random() * 6,
+          };
+        }
+        function buildLevel(n) {
+          if (n === 2) {
+            blocks = [
+              B(300, 780, 230, 40, "stone"),
+              B(310, 730, 60, 50, "ice"),
+              B(385, 730, 60, 50, "ice"),
+              B(460, 730, 60, 50, "ice"),
+              B(320, 714, 190, 16, "wood"),
+              B(360, 654, 16, 60, "wood"),
+              B(454, 654, 16, 60, "wood"),
+              B(350, 638, 130, 16, "wood"),
+            ];
+            gifts = [
+              GF("gorilla", 332, 714 - 27, 27),
+              GF("lion", 415, 714 - 29, 29),
+              GF("dragon", 415, 638 - 31, 31),
+            ];
+          } else if (n === 3) {
+            blocks = [
+              B(250, 760, 22, 60, "wood"),
+              B(290, 760, 22, 60, "wood"),
+              B(244, 744, 74, 16, "wood"),
+              B(350, 740, 70, 80, "stone"),
+              B(355, 680, 60, 60, "ice"),
+              B(455, 700, 18, 120, "wood"),
+              B(505, 700, 18, 120, "wood"),
+              B(448, 684, 82, 16, "wood"),
+            ];
+            gifts = [
+              GF("gorilla", 281, 744 - 27, 27),
+              GF("lion", 385, 680 - 29, 29),
+              GF("dragon", 489, 684 - 31, 31),
+            ];
+          } else {
+            blocks = [
+              B(292, 730, 18, 90, "wood"),
+              B(370, 730, 18, 90, "wood"),
+              B(284, 714, 112, 16, "wood"),
+              B(408, 780, 126, 40, "stone"),
+              B(418, 690, 18, 90, "wood"),
+              B(506, 690, 18, 90, "wood"),
+              B(440, 740, 62, 40, "ice"),
+              B(410, 674, 122, 16, "wood"),
+            ];
+            gifts = [
+              GF("gorilla", 340, G - 27, 27),
+              GF("lion", 340, 714 - 29, 29),
+              GF("dragon", 471, 674 - 31, 31),
+            ];
+          }
+        }
+        function reset(n, keep) {
+          LV = n || 1;
+          $("lvn").textContent = LV;
+          buildLevel(LV);
+          flyers = [];
+          parts = [];
+          texts = [];
+          fx = [];
+          flash = 0;
+          shake = 0;
+          shotsLeft = TOTAL;
+          flies = [];
+          credited = balance;
+          if (!keep) {
+            earned = [];
+            balance = 0;
+            credited = 0;
+            shownBal = 0;
+            $("balv").textContent = "0";
+          }
+          state = "aim";
+          dragging = false;
+          winT = 0;
+          firstShot = true;
+          loadCoin();
+          renderShots();
+        }
+        function w2s(x, y) {
+          return { x: x, y: y + OFF };
+        }
+        function loadCoin() {
+          coin = { x: ANCH.x, y: ANCH.y, vx: 0, vy: 0, r: 22, a: 0, fly: false, trail: [] };
+          coinIdle = 0;
+          coinAge = 0;
+        }
+        function renderShots() {
+          var h = "";
+          for (var i = 0; i < TOTAL; i++)
+            h +=
+              '<img src="' + IMG.coin + '" class="' + (i < TOTAL - shotsLeft ? "used" : "") + '">';
+          $("shots").innerHTML = h;
+        }
+
+        /* ---------- input ---------- */
+        function ptr(e) {
+          var r = stage.getBoundingClientRect();
+          return { x: (e.clientX - r.left) / SC, y: (e.clientY - r.top) / SC - OFF };
+        }
+        cv.addEventListener("pointerdown", function (e) {
+          if (state !== "aim" || !$("game").classList.contains("on")) return;
+          var p = ptr(e);
+          if (p.x < 300 && p.y > 380) {
+            dragging = true;
+            try {
+              cv.setPointerCapture(e.pointerId);
+            } catch (_) {}
+            move(p);
+          }
+        });
+        $("game").addEventListener("pointerdown", function (e) {
+          if (e.target.closest("#bal") || e.target.closest("#next")) return;
+          if (state !== "aim") return;
+          var p = ptr(e);
+          if (p.x < 300 && p.y > 380) {
+            dragging = true;
+            move(p);
+          }
+        });
+        function move(p) {
+          var dx = p.x - ANCH.x,
+            dy = p.y - ANCH.y,
+            d = Math.hypot(dx, dy);
+          if (d > MAXPULL) {
+            dx *= MAXPULL / d;
+            dy *= MAXPULL / d;
+          }
+          coin.x = ANCH.x + dx;
+          coin.y = ANCH.y + dy;
+        }
+        window.addEventListener("pointermove", function (e) {
+          if (dragging) move(ptr(e));
+        });
+        window.addEventListener("pointerup", function () {
+          if (!dragging) return;
+          dragging = false;
+          var dx = ANCH.x - coin.x,
+            dy = ANCH.y - coin.y;
+          if (Math.hypot(dx, dy) < 18) {
+            coin.x = ANCH.x;
+            coin.y = ANCH.y;
+            return;
+          }
+          coin.vx = dx * POWER;
+          coin.vy = dy * POWER;
+          coin.fly = true;
+          state = "fly";
+          shotsLeft--;
+          renderShots();
+        });
+
+        /* ---------- helpers ---------- */
+        function circRect(c, b) {
+          var cx = Math.max(b.x, Math.min(c.x, b.x + b.w)),
+            cy = Math.max(b.y, Math.min(c.y, b.y + b.h));
+          var dx = c.x - cx,
+            dy = c.y - cy,
+            d2 = dx * dx + dy * dy;
+          if (d2 >= c.r * c.r) return null;
+          var d = Math.sqrt(d2);
+          if (d < 1e-4) {
+            // center inside
+            var l = c.x - b.x,
+              r = b.x + b.w - c.x,
+              t = c.y - b.y,
+              bo = b.y + b.h - c.y,
+              m = Math.min(l, r, t, bo);
+            if (m === t) return { nx: 0, ny: -1, pen: c.r + t };
+            if (m === bo) return { nx: 0, ny: 1, pen: c.r + bo };
+            if (m === l) return { nx: -1, ny: 0, pen: c.r + l };
+            return { nx: 1, ny: 0, pen: c.r + r };
+          }
+          return { nx: dx / d, ny: dy / d, pen: c.r - d };
+        }
+        function fmt(n) {
+          return Math.round(n)
+            .toString()
+            .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        var COL = {
+          wood: ["#e0a04e", "#b87428", "#8a5216"],
+          ice: ["#c9f1ff", "#8fd6f2", "#5ab3d6"],
+          stone: ["#b4b8c2", "#8a8f9c", "#5d6270"],
+        };
+
+        function breakBlock(b, vx, vy) {
+          if (b.dead) return;
+          b.dead = true;
+          var sp = Math.hypot(vx, vy);
+          flyers.push({
+            x: b.x + b.w / 2,
+            y: b.y + b.h / 2,
+            w: b.w,
+            h: b.h,
+            type: b.type,
+            a: 0,
+            av: (Math.random() - 0.5) * 10 + (vx > 0 ? 4 : -4),
+            vx: vx,
+            vy: vy - 120,
+            life: 2.4,
+          });
+          for (var i = 0; i < 10; i++) {
+            parts.push({
+              x: b.x + Math.random() * b.w,
+              y: b.y + Math.random() * b.h,
+              vx: vx * 0.3 + (Math.random() - 0.5) * 420,
+              vy: vy * 0.3 - Math.random() * 380,
+              s: 4 + Math.random() * 7,
+              c: COL[b.type][i % 3],
+              life: 0.9 + Math.random() * 0.5,
+              a: Math.random() * 6,
+              av: (Math.random() - 0.5) * 14,
+              g: 1,
+            });
+          }
+        }
+        var fx = [],
+          flash = 0,
+          shake = 0;
+        function popGift(g) {
+          if (g.dead) return;
+          g.dead = true;
+          fx.push({ t: "burst", x: g.x, y: g.y, life: 0.25, max: 0.25 });
+          fx.push({ t: "ring", x: g.x, y: g.y, c: "#25f4ee", life: 0.45, max: 0.45, d: 0 });
+          fx.push({ t: "ring", x: g.x, y: g.y, c: "#fe2c55", life: 0.55, max: 0.55, d: 0.1 });
+          for (var q = 0; q < 10; q++) {
+            var aa = (q / 10) * Math.PI * 2,
+              ss = 380;
+            parts.push({
+              x: g.x,
+              y: g.y,
+              vx: Math.cos(aa) * ss,
+              vy: Math.sin(aa) * ss - 150,
+              s: 11,
+              c: ["#fe2c55", "#25f4ee", "#ffd76a", "#ffffff", "#ffd76a"][q % 5],
+              life: 0.8,
+              a: 0,
+              av: 6,
+              g: 0.8,
+              star: true,
+            });
+          }
+          for (var i = 0; i < 12; i++) {
+            var a = Math.random() * Math.PI * 2,
+              s = 180 + Math.random() * 420;
+            parts.push({
+              x: g.x,
+              y: g.y,
+              vx: Math.cos(a) * s,
+              vy: Math.sin(a) * s - 200,
+              s: 5 + Math.random() * 6,
+              c: ["#fe2c55", "#25f4ee", "#ffd76a", "#ffffff"][i % 4],
+              life: 0.9,
+              a: a,
+              av: 10,
+              g: 0.7,
+            });
+          }
+          for (var j = 0; j < 6; j++) {
+            var a2 = -Math.PI / 2 + (Math.random() - 0.5) * 2.2,
+              s2 = 300 + Math.random() * 350;
+            parts.push({
+              x: g.x,
+              y: g.y,
+              vx: Math.cos(a2) * s2,
+              vy: Math.sin(a2) * s2,
+              s: 18,
+              coin: true,
+              life: 1.4,
+              a: 0,
+              av: (Math.random() - 0.5) * 8,
+              g: 1,
+            });
+          }
+          texts.push({
+            big: 1,
+            x: Math.min(g.x, W - 95),
+            y: g.y - 30,
+            txt: "+" + fmt(g.val),
+            life: 1.4,
+          });
+          balance += g.val;
+          earned.push({ k: g.k, val: g.val, lv: LV });
+          var tg = balTarget(),
+            n = 8;
+          for (var m = 0; m < n; m++)
+            flies.push({
+              sx: g.x + (Math.random() - 0.5) * 40,
+              sy: g.y + (Math.random() - 0.5) * 30,
+              cx: g.x + (Math.random() - 0.5) * 260,
+              cy: g.y - 200 - Math.random() * 200,
+              ex: tg.x,
+              ey: tg.y,
+              t: -m * 0.06 - 0.15,
+              dur: 0.65,
+              amt: g.val / n,
+            });
+        }
+        var flies = [],
+          credited = 0,
+          earned = [];
+        var GN = { lion: "Lion", dragon: "Dragon", gorilla: "Gorilla" };
+        function buildList() {
+          var h =
+            '<div class="row new"><div class="ic"><img src="' +
+            IMG.coin +
+            '" alt=""></div><div class="t"><b>Game rewards</b><span>Just now</span></div><div class="v">+' +
+            fmt(balance) +
+            "</div></div>";
+          var agg = {},
+            ord = [];
+          earned.forEach(function (e) {
+            if (!agg[e.k]) {
+              agg[e.k] = { n: 0, v: 0 };
+              ord.push(e.k);
+            }
+            agg[e.k].n++;
+            agg[e.k].v += e.val;
+          });
+          ord.forEach(function (k) {
+            var a = agg[k];
+            h +=
+              '<div class="row"><div class="ic"><img src="' +
+              IMG[k] +
+              '" alt=""></div><div class="t"><b>Gift knocked: ' +
+              GN[k] +
+              (a.n > 1 ? " ×" + a.n : "") +
+              '</b><span>Just now</span></div><div class="v">+' +
+              fmt(a.v) +
+              "</div></div>";
+          });
+          $("alist").innerHTML = h;
+        }
+        function balTarget() {
+          var r = document.querySelector("#bal img").getBoundingClientRect(),
+            s = stage.getBoundingClientRect();
+          return {
+            x: (r.left + r.width / 2 - s.left) / SC,
+            y: (r.top + r.height / 2 - s.top) / SC - OFF,
+          };
+        }
+        function flyTick(dt) {
+          for (var i = flies.length - 1; i >= 0; i--) {
+            var f = flies[i];
+            f.t += dt;
+            if (f.t >= f.dur) {
+              credited += f.amt;
+              flies.splice(i, 1);
+              var bal = $("bal");
+              bal.classList.remove("bump");
+              void bal.offsetWidth;
+              bal.classList.add("bump");
+            }
+          }
+        }
+
+        /* ---------- physics ---------- */
+        function step(dt) {
+          var i, j, b, g, c, f;
+          // coin
+          if (coin.fly) {
+            coinAge += dt;
+            coin.vy += GRAV * dt;
+            coin.x += coin.vx * dt;
+            coin.y += coin.vy * dt;
+            coin.a += (coin.vx * dt) / coin.r;
+            var sp = Math.hypot(coin.vx, coin.vy);
+            for (i = 0; i < blocks.length; i++) {
+              b = blocks[i];
+              if (b.dead) continue;
+              c = circRect(coin, b);
+              if (!c) continue;
+              var vn = coin.vx * c.nx + coin.vy * c.ny;
+              if (sp > THR[b.type] && vn < 0) {
+                breakBlock(b, coin.vx * 0.6, coin.vy * 0.6);
+                coin.vx *= 0.72;
+                coin.vy *= 0.72;
+                sp *= 0.72;
+              } else {
+                coin.x += c.nx * c.pen;
+                coin.y += c.ny * c.pen;
+                if (vn < 0) {
+                  coin.vx -= 1.35 * vn * c.nx;
+                  coin.vy -= 1.35 * vn * c.ny;
+                  coin.vx *= 0.9;
+                }
+              }
+            }
+            for (i = 0; i < gifts.length; i++) {
+              g = gifts[i];
+              if (g.dead) continue;
+              var dx = g.x - coin.x,
+                dy = g.y - coin.y,
+                d = Math.hypot(dx, dy);
+              if (d < g.r + coin.r) {
+                if (sp > 20) {
+                  popGift(g);
+                  coin.vx *= 0.82;
+                  coin.vy *= 0.82;
+                } else {
+                  var p = (g.r + coin.r - d) / 2,
+                    nx = dx / (d || 1),
+                    ny = dy / (d || 1);
+                  coin.x -= nx * p;
+                  coin.y -= ny * p;
+                  g.x += nx * p;
+                  g.y += ny * p;
+                  g.vx += coin.vx * 0.3;
+                }
+              }
+            }
+            if (coin.y + coin.r > G) {
+              coin.y = G - coin.r;
+              if (coin.vy > 0) coin.vy *= -0.32;
+              coin.vx *= 0.86;
+            }
+            if (sp < 30) coinIdle += dt;
+            else coinIdle = 0;
+            if (coinAge % 0.03 < dt) coin.trail.push({ x: coin.x, y: coin.y, l: 1.6 });
+          }
+          // static blocks gravity / support
+          var order = blocks
+            .filter(function (b) {
+              return !b.dead;
+            })
+            .sort(function (a, b) {
+              return b.y + b.h - (a.y + a.h);
+            });
+          for (i = 0; i < order.length; i++) {
+            b = order[i];
+            var bot = b.y + b.h;
+            if (Math.abs(bot - G) < 1.5 && b.vy === 0) continue;
+            var mn = 1e9,
+              mx = -1e9,
+              sup = false;
+            for (j = 0; j < order.length; j++) {
+              var o = order[j];
+              if (o === b || o.dead) continue;
+              var ol = Math.max(o.x, b.x),
+                orr = Math.min(o.x + o.w, b.x + b.w);
+              if (orr - ol > 2 && Math.abs(o.y - bot) < 1.5) {
+                sup = true;
+                mn = Math.min(mn, ol);
+                mx = Math.max(mx, orr);
+              }
+            }
+            if (sup && b.vy === 0) {
+              var cx = b.x + b.w / 2;
+              if (cx < mn - 3 || cx > mx + 3) {
+                var sg = cx < mn ? -1 : 1;
+                b.dead = true;
+                flyers.push({
+                  x: cx,
+                  y: b.y + b.h / 2,
+                  w: b.w,
+                  h: b.h,
+                  type: b.type,
+                  a: 0,
+                  av: sg * 2.6,
+                  vx: sg * 70,
+                  vy: 0,
+                  life: 2.6,
+                  soft: true,
+                });
+              }
+              continue;
+            }
+            // falling
+            var ob = bot;
+            b.vy += GRAV * dt;
+            b.y += b.vy * dt;
+            var nb = b.y + b.h,
+              land = G;
+            for (j = 0; j < order.length; j++) {
+              var o2 = order[j];
+              if (o2 === b || o2.dead) continue;
+              if (
+                Math.min(o2.x + o2.w, b.x + b.w) - Math.max(o2.x, b.x) > 2 &&
+                o2.y >= ob - 1 &&
+                o2.y < land
+              )
+                land = o2.y;
+            }
+            if (nb >= land) {
+              b.y = land - b.h;
+              if (b.vy > THR[b.type] * 1.1) breakBlock(b, (Math.random() - 0.5) * 200, -b.vy * 0.3);
+              b.vy = 0;
+            }
+            // falling block crushes gift
+            if (b.vy > 110) {
+              for (j = 0; j < gifts.length; j++) {
+                g = gifts[j];
+                if (!g.dead && circRect(g, b)) popGift(g);
+              }
+            }
+          }
+          // gifts
+          for (i = 0; i < gifts.length; i++) {
+            g = gifts[i];
+            if (g.dead) continue;
+            g.vy += GRAV * dt;
+            g.x += g.vx * dt;
+            g.y += g.vy * dt;
+            var imp = 0;
+            for (j = 0; j < blocks.length; j++) {
+              b = blocks[j];
+              if (b.dead) continue;
+              c = circRect(g, b);
+              if (!c) continue;
+              var vn2 = g.vx * c.nx + g.vy * c.ny;
+              g.x += c.nx * c.pen;
+              g.y += c.ny * c.pen;
+              if (vn2 < 0) {
+                imp = Math.max(imp, -vn2);
+                g.vx -= 1.2 * vn2 * c.nx;
+                g.vy -= 1.2 * vn2 * c.ny;
+                g.vx *= 0.9;
+              }
+              if (c.ny < -0.5) g.vy = Math.min(g.vy, b.vy);
+                    ctx.beginPath();
+            if (w > h) {
+              ctx.moveTo(x + 8, y + h * 0.6);
+              ctx.lineTo(x + w - 8, y + h * 0.6);
+            } else {
+              ctx.moveTo(x + w * 0.55, y + 8);
+              ctx.lineTo(x + w * 0.55, y + h - 8);
+              ctx.moveTo(x + w * 0.3, y + h * 0.3);
+              ctx.lineTo(x + w * 0.3, y + h * 0.55);
+            }
+            ctx.stroke();
+          } else if (type === "ice") {
+            ctx.globalAlpha *= 0.8;
+            ctx.fillRect(x + 4, y + 4, w * 0.4, 4);
+            ctx.fillRect(x + 4, y + 4, 4, h * 0.5);
+            ctx.strokeStyle = "#ffffffaa";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x + w * 0.6, y + h * 0.3);
+            ctx.lineTo(x + w * 0.8, y + h * 0.7);
+            ctx.stroke();
+          } else {
+            ctx.fillStyle = c[0];
+            ctx.beginPath();
+            ctx.arc(x + w * 0.25, y + h * 0.35, 4, 0, 7);
+            ctx.arc(x + w * 0.7, y + h * 0.6, 5, 0, 7);
+            ctx.fill();
+            ctx.strokeStyle = c[2];
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x + w * 0.45, y + 3);
+            ctx.lineTo(x + w * 0.5, y + h - 3);
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+        }
+        function cloud(x, y, s) {
+          ctx.beginPath();
+          ctx.arc(x, y, 26 * s, 0, 7);
+          ctx.arc(x + 30 * s, y - 12 * s, 32 * s, 0, 7);
+          ctx.arc(x + 62 * s, y, 24 * s, 0, 7);
+          ctx.arc(x + 30 * s, y + 8 * s, 26 * s, 0, 7);
+          ctx.fill();
+        }
+        function drawSling(back) {
+          var bx = ANCH.x,
+            by = G;
+          if (back) {
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.strokeStyle = "#25f4ee";
+            ctx.lineWidth = 17;
+            ctx.beginPath();
+            ctx.moveTo(bx + 2, by);
+            ctx.lineTo(bx + 2, ANCH.y + 48);
+            ctx.lineTo(bx + 18, ANCH.y - 8);
+            ctx.stroke();
+            ctx.strokeStyle = "#fe2c55";
+            ctx.beginPath();
+            ctx.moveTo(bx - 2, by);
+            ctx.lineTo(bx - 2, ANCH.y + 48);
+            ctx.lineTo(bx + 14, ANCH.y - 8);
+            ctx.stroke();
+            ctx.strokeStyle = "#111";
+            ctx.lineWidth = 11;
+            ctx.beginPath();
+            ctx.moveTo(bx, by);
+            ctx.lineTo(bx, ANCH.y + 48);
+            ctx.lineTo(bx + 16, ANCH.y - 8);
+            ctx.stroke();
+          } else {
+            ctx.lineCap = "round";
+            ctx.strokeStyle = "#fe2c55";
+            ctx.lineWidth = 17;
+            ctx.beginPath();
+            ctx.moveTo(bx - 2, ANCH.y + 48);
+            ctx.lineTo(bx - 18, ANCH.y - 6);
+            ctx.stroke();
+            ctx.strokeStyle = "#25f4ee";
+            ctx.beginPath();
+            ctx.moveTo(bx + 2, ANCH.y + 48);
+            ctx.lineTo(bx - 14, ANCH.y - 6);
+            ctx.stroke();
+            ctx.strokeStyle = "#111";
+            ctx.lineWidth = 11;
+            ctx.beginPath();
+            ctx.moveTo(bx, ANCH.y + 48);
+            ctx.lineTo(bx - 16, ANCH.y - 6);
+            ctx.stroke();
+          }
+        }
+        function draw(time) {
+          ctx.setTransform(K, 0, 0, K, 0, 0);
+          // background: deep purple stage with spotlights
+          var sg = ctx.createLinearGradient(0, 0, 0, H);
+          sg.addColorStop(0, "#1a0630");
+          sg.addColorStop(0.45, "#2a0a3d");
+          sg.addColorStop(1, "#120420");
+          ctx.fillStyle = sg;
+          ctx.fillRect(0, 0, W, H);
+          ctx.translate(0, OFF);
+          // spotlight beams
+          ctx.save();
+          ctx.globalCompositeOperation = "lighter";
+          for (var bi = 0; bi < 4; bi++) {
+            var ox = bi < 2 ? -40 : W + 40,
+              ang = (bi < 2 ? 1 : -1) * (0.35 + Math.sin(time * 0.6 + bi * 1.7) * 0.22),
+              col = bi % 2 ? "254,44,85" : "37,244,238";
+            ctx.save();
+            ctx.translate(ox, -OFF - 20);
+            ctx.rotate(ang);
+            var bg = ctx.createLinearGradient(0, 0, 0, G + OFF + 200);
+            bg.addColorStop(0, "rgba(" + col + ",.30)");
+            bg.addColorStop(1, "rgba(" + col + ",0)");
+            ctx.fillStyle = bg;
+            ctx.beginPath();
+            ctx.moveTo(-14, 0);
+            ctx.lineTo(14, 0);
+            ctx.lineTo(120, G + OFF + 200);
+            ctx.lineTo(-120, G + OFF + 200);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+          }
+          ctx.restore();
+          // sparkles
+          for (var si = 0; si < sparks.length; si++) {
+            var sp = sparks[si];
+            var a = 0.25 + 0.75 * Math.max(0, Math.sin(time * sp.s + sp.p));
+            ctx.globalAlpha = a;
+            ctx.fillStyle = "#fff";
+            ctx.beginPath();
+            ctx.arc(sp.x, sp.y, sp.r, 0, 7);
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+          // glossy floor
+          var fg = ctx.createLinearGradient(0, G, 0, H - OFF);
+          fg.addColorStop(0, "#2b0d3f");
+          fg.addColorStop(1, "#0c0414");
+          ctx.fillStyle = fg;
+          ctx.fillRect(0, G, W, H - OFF - G + 5);
+          var rf = ctx.createLinearGradient(0, G, 0, G + 90);
+          rf.addColorStop(0, "rgba(254,44,85,.25)");
+          rf.addColorStop(1, "rgba(37,244,238,0)");
+          ctx.fillStyle = rf;
+          ctx.fillRect(0, G, W, 90);
+          ctx.fillStyle = "#fe2c55";
+          ctx.fillRect(0, G - 1, W, 4);
+          ctx.fillStyle = "#25f4ee";
+          ctx.fillRect(0, G - 5, W, 3);
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, G - 2, W, 2);
+          // slingshot back arm + band
+          drawSling(true);
+          if (state === "aim") {
+            ctx.strokeStyle = "#25f4ee";
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.moveTo(ANCH.x + 16, ANCH.y - 8);
+            ctx.lineTo(coin.x, coin.y);
+            ctx.stroke();
+          }
+          // trail
+          for (i = 0; i < coin.trail.length; i++) {
+            var tr = coin.trail[i];
+            ctx.fillStyle = "rgba(255,255,255," + Math.min(0.8, tr.l) + ")";
+            ctx.beginPath();
+            ctx.arc(tr.x, tr.y, 3.5, 0, 7);
+            ctx.fill();
+          }
+          // blocks
+          for (i = 0; i < blocks.length; i++) {
+            var b = blocks[i];
+            if (!b.dead) drawBlock(b.x, b.y, b.w, b.h, b.type);
+          }
+          for (i = 0; i < flyers.length; i++) {
+            var f = flyers[i];
+            ctx.save();
+            ctx.translate(f.x, f.y);
+            ctx.rotate(f.a);
+            drawBlock(-f.w / 2, -f.h / 2, f.w, f.h, f.type, Math.min(1, f.life * 1.5));
+            ctx.restore();
+          }
+          // gifts
+          for (i = 0; i < gifts.length; i++) {
+            var g = gifts[i];
+            if (g.dead) continue;
+            var bob = 1 + Math.sin(time * 3 + g.ph) * 0.03,
+              s = g.r * 2.5 * bob;
+            ctx.fillStyle = "rgba(37,244,238,.25)";
+            ctx.beginPath();
+            ctx.ellipse(g.x, g.y + g.r - 2, g.r * 0.9, 5, 0, 0, 7);
+            ctx.fill();
+            if (im[g.k].complete) ctx.drawImage(im[g.k], g.x - s / 2, g.y + g.r - s * 0.92, s, s);
+          }
+          // aim preview
+          if (state === "aim" && dragging) {
+            var vx = (ANCH.x - coin.x) * POWER,
+              vy = (ANCH.y - coin.y) * POWER,
+              px = coin.x,
+              py = coin.y;
+            for (i = 1; i <= 22; i++) {
+              var tt = i * 0.045;
+              var qx = px + vx * tt,
+                qy = py + vy * tt + 0.5 * GRAV * tt * tt;
+              if (qy > G) break;
+              ctx.fillStyle = "rgba(255,255,255," + (1 - i / 24) + ")";
+              ctx.beginPath();
+              ctx.arc(qx, qy, 5 - i * 0.15, 0, 7);
+              ctx.fill();
+            }
+          }
+          // coin
+          if (state !== "done" && (state === "aim" || state === "fly")) {
+            ctx.save();
+            ctx.translate(coin.x, coin.y);
+            ctx.rotate(coin.a);
+            var cs = coin.r * 2.5;
+            if (im.coin.complete) ctx.drawImage(im.coin, -cs / 2, -cs / 2, cs, cs);
+            ctx.restore();
+          }
+          // front arm + band
+          if (state === "aim") {
+            ctx.strokeStyle = "#fe2c55";
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.moveTo(ANCH.x - 16, ANCH.y - 6);
+            ctx.lineTo(coin.x, coin.y);
+            ctx.stroke();
+          }
+          drawSling(false);
+          // waiting coins behind sling
+          for (
+            i = 0;
+            i <
+            Math.max(
+              0,
+              shotsLeft -
+                (state === "aim" ? 0 : 0) -
+                (state === "aim" ? 1 : 0) +
+                (state === "fly" ? 0 : 0),
+            );
+            i++
+          ) {
+            var wx = 58 - i * 30;
+            if (im.coin.complete) ctx.drawImage(im.coin, wx - 18, G - 38, 36, 36);
+          }
+          // particles
+          for (i = 0; i < parts.length; i++) {
+            var p = parts[i];
+            ctx.globalAlpha = Math.max(0, Math.min(1, p.life * 1.5));
+            if (p.spark) {
+              ctx.save();
+              ctx.globalCompositeOperation = "lighter";
+              ctx.strokeStyle = p.c;
+              ctx.lineWidth = p.s;
+              ctx.lineCap = "round";
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(p.x - p.vx * 0.035, p.y - p.vy * 0.035);
+              ctx.stroke();
+              ctx.restore();
+            } else if (p.coin) {
+              if (im.coin.complete) ctx.drawImage(im.coin, p.x - p.s, p.y - p.s, p.s * 2, p.s * 2);
+            } else {
+              ctx.save();
+              ctx.translate(p.x, p.y);
+              ctx.rotate(p.a);
+              ctx.fillStyle = p.c;
+              if (p.star) {
+                ctx.beginPath();
+                for (var k = 0; k < 10; k++) {
+                  var rad = k % 2 ? p.s * 0.45 : p.s;
+                  ctx.lineTo(Math.cos((k * Math.PI) / 5) * rad, Math.sin((k * Math.PI) / 5) * rad);
+                }
+                ctx.fill();
+              } else ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.7);
+              ctx.restore();
+            }
+          }
+          ctx.globalAlpha = 1;
+          // pop fx (light)
+          for (i = 0; i < fx.length; i++) {
+            var e = fx[i],
+              pr = 1 - e.life / e.max;
+            if (e.t === "burst") {
+              ctx.globalAlpha = 1 - pr;
+              ctx.fillStyle = "#fff";
+              ctx.beginPath();
+              ctx.arc(e.x, e.y, 20 + pr * 55, 0, 7);
+              ctx.fill();
+            } else if (e.t === "ring") {
+              var lp = Math.max(0, (e.max - e.life - e.d) / (e.max - e.d));
+              if (lp <= 0) continue;
+              ctx.globalAlpha = 1 - lp;
+              ctx.strokeStyle = e.c;
+              ctx.lineWidth = 8 * (1 - lp) + 2;
+              ctx.beginPath();
+              ctx.arc(e.x, e.y, 25 + lp * 110, 0, 7);
+              ctx.stroke();
+            }
+          }
+          ctx.globalAlpha = 1;
+          // floating texts
+          ctx.textAlign = "center";
+          for (i = 0; i < texts.length; i++) {
+            var t = texts[i];
+            ctx.globalAlpha = Math.min(1, t.life * 1.5);
+            var tsc = 1 + Math.max(0, t.life - 1.25) * 3;
+            ctx.font = "900 " + Math.round(40 * tsc) + "px -apple-system,Segoe UI,Roboto,Arial";
+            ctx.lineWidth = 7;
+            ctx.strokeStyle = "#3b2400";
+            ctx.strokeText(t.txt, t.x + 10, t.y);
+            ctx.fillStyle = "#ffd76a";
+            ctx.fillText(t.txt, t.x + 10, t.y);
+            if (im.coin.complete)
+              ctx.drawImage(
+                im.coin,
+                t.x - ctx.measureText(t.txt).width / 2 - 30,
+                t.y - 36 * tsc,
+                40 * tsc,
+                40 * tsc,
+              );
+          }
+          ctx.globalAlpha = 1;
+          // coins flying into balance
+          for (i = 0; i < flies.length; i++) {
+            var fl = flies[i];
+            if (fl.t < 0) continue;
+            var u = fl.t / fl.dur,
+              e2 = u * u * (3 - 2 * u),
+              v = 1 - e2;
+            var fxp = v * v * fl.sx + 2 * v * e2 * fl.cx + e2 * e2 * fl.ex,
+              fyp = v * v * fl.sy + 2 * v * e2 * fl.cy + e2 * e2 * fl.ey,
+              fs = 40 - u * 12;
+            if (im.coin.complete) ctx.drawImage(im.coin, fxp - fs / 2, fyp - fs / 2, fs, fs);
+          }
+        }
+
+        function fxTick(dt) {
+          flyTick(dt);
+          for (var i = fx.length - 1; i >= 0; i--) {
+            fx[i].life -= dt;
+            if (fx[i].life <= 0) fx.splice(i, 1);
+          }
+          flash = Math.max(0, flash - dt * 2.4);
+          shake = Math.max(0, shake - dt * 60);
+        }
+        var last = 0,
+          T = 0;
+        function loop(ts) {
+          var dt = Math.min(0.033, (ts - last) / 1000 || 0);
+          last = ts;
+          T += dt;
+          if (
+            $("game").classList.contains("on") ||
+            $("win").classList.contains("on") ||
+            $("fail").classList.contains("on")
+          ) {
+            if ($("game").classList.contains("on")) update(dt);
+            else {
+              // keep particles alive behind overlays
+              fxTick(dt);
+              for (var i = parts.length - 1; i >= 0; i--) {
+                var p = parts[i];
+                p.life -= dt;
+                p.vy += GRAV * p.g * dt;
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                if (p.life <= 0) parts.splice(i, 1);
+              }
+            }
+            draw(T);
+          }
+          if ($("acct").classList.contains("on")) confLoop(dt);
+          requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+
+        /* ---------- screens ---------- */
+        function startGame(n, keep) {
+          reset(n, keep);
+          show("game");
+          $("game").classList.add("on");
+          $("win").classList.remove("on");
+        }
+        $("play").addEventListener("click", function () {
+          startGame();
+        });
+        startGame();
+        $("retry").addEventListener("click", function () {
+          startGame(LV, true);
+        });
+        $("next").addEventListener("pointerdown", function (e) {
+          e.stopPropagation();
+        });
+        $("next").addEventListener("click", function (e) {
+          e.stopPropagation();
+          dragging = false;
+          startGame((LV % 3) + 1, true);
+        });
+        function fullReset() {
+          $("nick").value = "";
+          $("claim").disabled = true;
+          $("aplus").classList.remove("on");
+          $("okbox").classList.remove("on");
+          confs = [];
+          startGame();
+        }
+        $("bal").addEventListener("click", function (e) {
+          e.stopPropagation();
+          dragging = false;
+          openWin();
+        });
+        $("wclose").addEventListener("click", function () {
+          try {
+            document.activeElement.blur();
+          } catch (_) {}
+          $("win").classList.remove("on");
+        });
+        $("back").addEventListener("click", fullReset);
+        $("acard").addEventListener("click", fullReset);
+
+        function openWin() {
+          flies = [];
+          credited = balance;
+          shownBal = balance;
+          $("balv").textContent = fmt(balance);
+          checkNick();
+          $("wamt").textContent = fmt(balance);
+          $("game").classList.add("on");
+          $("win").classList.add("on");
+        }
+        var A1 = [
+          "lucky",
+          "pro",
+          "its",
+          "real",
+          "the",
+          "official",
+          "mr",
+          "miss",
+          "king",
+          "queen",
+          "dark",
+          "ice",
+          "fire",
+          "tiny",
+          "big",
+          "super",
+          "vibe",
+          "sweet",
+          "crazy",
+          "golden",
+        ];
+        var A2 = [
+          "gamer",
+          "sofia",
+          "max",
+          "lili",
+          "alex",
+          "nika",
+          "tom",
+          "emma",
+          "leo",
+          "mia",
+          "jake",
+          "ava",
+          "noah",
+          "zoe",
+          "kira",
+          "dan",
+          "luna",
+          "ryan",
+          "bella",
+          "milo",
+        ];
+        function genNick() {
+          var r = Math.random,
+            n;
+          var a = A1[Math.floor(r() * A1.length)],
+            b = A2[Math.floor(r() * A2.length)],
+            d = Math.floor(r() * 9000 + 100);
+          var v = Math.floor(r() * 4);
+          if (v === 0) n = a + "." + b + d;
+          else if (v === 1) n = b + "_" + a + (d % 100);
+          else if (v === 2) n = "user" + Math.floor(r() * 90000000 + 10000000);
+          else n = b + a + d;
+          return n;
+        }
+        function checkNick() {
+          $("claim").disabled = $("nick").value.trim().length < 2;
+        }
+        $("nick").addEventListener("input", function () {
+          this.value = this.value.replace(/[^a-zA-Z0-9._]/g, "");
+          checkNick();
+        });
+        $("paste").addEventListener("click", function (e) {
+          e.preventDefault();
+          $("nick").value = genNick();
+          checkNick();
+        });
+        $("nick").addEventListener("blur", function () {
+          setTimeout(fit, 250);
+        });
+
+        var AVC = [
+          "linear-gradient(135deg,#fe2c55,#ff8a00)",
+          "linear-gradient(135deg,#25f4ee,#3b5bff)",
+          "linear-gradient(135deg,#a855f7,#fe2c55)",
+          "linear-gradient(135deg,#12c46b,#25f4ee)",
+        ];
+        $("claim").addEventListener("click", function () {
+          var n = $("nick").value.trim();
+          if (n.length < 2) return;
+          try {
+            document.activeElement.blur();
+          } catch (_) {}
+          var bg = AVC[Math.floor(Math.random() * AVC.length)],
+            L = n.charAt(0).toUpperCase();
+          $("lav").style.background = bg;
+          $("lav").textContent = L;
+          $("aav").style.background = bg;
+          $("aav").textContent = L;
+          $("alvl").textContent = "Coin Sling player · Level " + LV;
+          $("lnick").textContent = "@" + n;
+          $("anick").textContent = "@" + n;
+          show("load");
+          var steps = [
+            [0, "Searching account..."],
+            [30, "Account found ✓"],
+            [55, "Sending " + fmt(balance) + " coins..."],
+            [88, "Confirming transfer..."],
+            [100, "Done ✓"],
+          ];
+          var t = 0,
+            dur = 1500,
+            st = performance.now();
+          (function tick() {
+            var p = Math.min(100, ((performance.now() - st) / dur) * 100);
+            var eased = p < 60 ? p : 60 + (p - 60) * 1;
+            $("lbar").style.width = eased + "%";
+            $("lpct").textContent = Math.floor(eased) + "%";
+            for (var i = steps.length - 1; i >= 0; i--)
+              if (eased >= steps[i][0]) {
+                $("lstep").textContent = steps[i][1];
+                break;
+              }
+            if (p < 100) requestAnimationFrame(tick);
+            else setTimeout(openAcct, 200);
+          })();
+        });
+
+        function openAcct() {
+          show("acct");
+          buildList();
+          var base = 0,
+            target = balance,
+            st = performance.now();
+          $("aamt").textContent = fmt(base);
+          $("aplus").textContent = "+" + fmt(balance) + " added";
+          $("oktxt").textContent = fmt(balance) + " coins added";
+          setTimeout(function () {
+            $("aplus").classList.add("on");
+            (function cnt() {
+              var p = Math.min(1, (performance.now() - st - 500) / 1800);
+              if (p < 0) p = 0;
+              var e = 1 - Math.pow(1 - p, 3);
+              $("aamt").textContent = fmt(base + (target - base) * e);
+              if (p < 1) requestAnimationFrame(cnt);
+    
